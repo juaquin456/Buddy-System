@@ -1,3 +1,4 @@
+/// Returns the next power of 2 that is greater than or equal to `size`.
 pub fn memory_to_allocate(size: usize) -> usize {
     if size == 0 {
         return 0;
@@ -21,4 +22,11 @@ pub fn memory_to_allocate(size: usize) -> usize {
     else {
         potency_of_2 << 1
     }
+}
+
+/// Returns the width of the node at the given position.
+/// Using recurrence relation,
+/// ```x = 2*y + 6```
+pub fn calculate_width(n: u32) -> u32 {
+    6 * ((2u32).pow(n) - 1)
 }
