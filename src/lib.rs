@@ -1,29 +1,21 @@
-#[derive(PartialEq, Clone)]
-enum State {
-    Used,
-    NoUsed,
-    PartialUsed
-}
-
+mod utils;
 #[derive(Clone)]
 struct BuddyNode {
     next: Option<Box<BuddyNode>>,
-    prev: Option<Box<BuddyNode>>,
     size: usize,
-    state: State,
+    used: bool,
 }
 
 impl BuddyNode {
     fn new(size: usize) -> BuddyNode {
         BuddyNode {
-            prev: None,
             next: None,
             size,
-            state: State::NoUsed,
+            used: false,
         }
     }
     fn fit(&self, size: usize) -> bool {
-        (self.state != State::Used) & (size < self.size)
+        (!self.used) & (size <= self.size)
     }
 }
 
@@ -39,20 +31,18 @@ impl BuddyTree {
     }
 
     fn allocate(&mut self, size: usize) -> bool {
-        let m_size = memory_to_allocate(size);
+        let m_size = utils::memory_to_allocate(size);
         let mut node = &mut self.root;
 
         loop {
             if node.fit(m_size) {
                 while node.size != m_size {
                     let mut new_node = BuddyNode::new(node.size / 2);
-                    new_node.prev = Some(node.clone());
                     new_node.next = node.next.take();
                     node.next = Some(Box::new(new_node));
                     node.size = node.size / 2;
-                    node.state = State::PartialUsed;
                 }
-                node.state = State::Used;
+                node.used = true;
                 return true;
             }
             else {
@@ -70,65 +60,68 @@ impl BuddyTree {
 
 }
 
-fn memory_to_allocate(size: usize) -> usize {
-    if size == 0 {
-        return 0;
-    }
-
-    let mut n = size;
-    let mut longest_bit = 0;
-
-    loop {
-        n >>= 1;
-        longest_bit += 1;
-
-        if n == 0 {
-            break;
-        }
-    }
-    let potency_of_2: usize = 1 << (longest_bit - 1);
-    if potency_of_2 >= size {
-        potency_of_2
-    }
-    else {
-        potency_of_2 << 1
-    }
-
-
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn mem_calc1() {
-        let result = memory_to_allocate(10);
+        let result = utils::memory_to_allocate(10);
         assert_eq!(result, 16);
     }
 
     #[test]
     fn mem_calc2() {
-        let result = memory_to_allocate(8);
+        let result = utils::memory_to_allocate(8);
         assert_eq!(result, 8);
     }
 
     #[test]
     fn mem_calc4() {
-        let result = memory_to_allocate(7);
+        let result = utils::memory_to_allocate(7);
         assert_eq!(result, 8);
     }
 
     #[test]
     fn mem_calc5() {
-        let result = memory_to_allocate(9);
+        let result = utils::memory_to_allocate(9);
         assert_eq!(result, 16);
     }
 
     #[test]
-    fn test_buddy_tree() {
+    fn test_allocate1() {
         let mut tree = BuddyTree::new(16);
         let result = tree.allocate(8);
         assert_eq!(result, true);
+    }
+
+    #[test]
+    fn test_allocate2() {
+        let mut tree = BuddyTree::new(16);
+        let result = tree.allocate(8);
+        assert_eq!(result, true);
+        let result = tree.allocate(8);
+        assert_eq!(result, true);
+    }
+    #[test]
+    fn test_allocate3() {
+        let mut tree = BuddyTree::new(128);
+        for _ in 0..16 {
+            let result = tree.allocate(8);
+            assert_eq!(result, true);
+        }
+    }
+
+    #[test]
+    fn test_allocate4() {
+        let mut tree = BuddyTree::new(128);
+        for _ in 0..16 {
+            let result = tree.allocate(8);
+            assert_eq!(result, true);
+        }
+        for _ in 0..4 {
+            let result = tree.allocate(32);
+            assert_eq!(result, false);
+        }
     }
 }
