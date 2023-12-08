@@ -2,7 +2,7 @@ use std::fmt::Display;
 use std::usize;
 use crate::utils;
 use crate::utils::calculate_width;
-
+use colored::Colorize;
 #[derive(Clone)]
 struct BuddyNode<T> {
     next: Option<Box<BuddyNode<T>>>,
@@ -160,10 +160,10 @@ impl<T> BuddyTree<T> where T: PartialEq + Copy + Display{
             print!("|{}|", format!("{: ^width$}", {
                 match node.id {
                     Some(ref id) => {
-                        format!("id  : {:4}", id)
+                        format!("id  : {:4}", node.size).blue()
                     },
                     None => {
-                        format!("free: {:4}", node.size)
+                        format!("size: {:4}", node.size).red()
                     }
                 }
             }, width=10 + 2*calculate_width(node.size.ilog2() - rescale) as usize));
