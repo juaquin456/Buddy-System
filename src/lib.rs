@@ -1,6 +1,7 @@
 mod utils;
 mod buddy;
 
+pub use buddy::BuddyTree;
 
 
 #[cfg(test)]
