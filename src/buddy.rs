@@ -1,8 +1,11 @@
 use std::fmt::Display;
 use std::usize;
+
+use colored::Colorize;
+
 use crate::utils;
 use crate::utils::calculate_width;
-use colored::Colorize;
+
 #[derive(Clone)]
 struct BuddyNode<T> {
     next: Option<Box<BuddyNode<T>>>,
@@ -49,7 +52,7 @@ impl<T> BuddyNode<T> where T: PartialEq + Copy {
         match self.id {
             Some(ref i) => {
                 *i == id
-            },
+            }
             None => {
                 false
             }
@@ -67,15 +70,14 @@ pub struct BuddyTree<T> {
     root: Box<BuddyNode<T>>,
 }
 
-impl<T> BuddyTree<T> where T: PartialEq + Copy + Display{
-
+impl<T> BuddyTree<T> where T: PartialEq + Copy + Display {
     /// Creates a new BuddyTree with the specified size.
     ///
     /// # Arguments
     ///
     /// * `size` - The size of the Buddy System.
     pub fn new(size: usize) -> BuddyTree<T> {
-        BuddyTree{
+        BuddyTree {
             root: Box::new(BuddyNode::new(size))
         }
     }
@@ -95,7 +97,6 @@ impl<T> BuddyTree<T> where T: PartialEq + Copy + Display{
         loop {
             // First free node found which fits the size
             if node.fit(m_size) {
-
                 while node.size != m_size {
                     // Split the node until the size is reached
                     let mut new_node = BuddyNode::new(node.size / 2);
@@ -107,12 +108,11 @@ impl<T> BuddyTree<T> where T: PartialEq + Copy + Display{
                 // Mark the node as used
                 node.set_id(id);
                 return true;
-            }
-            else {
+            } else {
                 match node.next {
                     Some(ref mut next) => {
                         node = next;
-                    },
+                    }
                     None => {
                         return false;
                     }
@@ -134,12 +134,11 @@ impl<T> BuddyTree<T> where T: PartialEq + Copy + Display{
             if node.contains(id) {
                 node.release();
                 return true;
-            }
-            else {
+            } else {
                 match node.next {
                     Some(ref mut next) => {
                         node = next;
-                    },
+                    }
                     None => {
                         return false;
                     }
@@ -160,19 +159,19 @@ impl<T> BuddyTree<T> where T: PartialEq + Copy + Display{
             print!("|{}|", format!("{: ^width$}", {
                 match node.id {
                     Some(ref id) => {
-                        format!("id  : {:4}", node.size).blue()
-                    },
+                        format!("id  : {:4}", id).blue()
+                    }
                     None => {
                         format!("size: {:4}", node.size).red()
                     }
                 }
-            }, width=10 + 2*calculate_width(node.size.ilog2() - rescale) as usize));
+            }, width = 10 + 2 * calculate_width(node.size.ilog2() - rescale) as usize));
 
 
             match node.next {
                 Some(ref next) => {
                     node = next;
-                },
+                }
                 None => {
                     println!();
                     break;

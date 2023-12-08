@@ -22,8 +22,7 @@ pub fn memory_to_allocate(size: usize) -> usize {
     let potency_of_2: usize = 1 << (longest_bit - 1);
     if potency_of_2 >= size {
         potency_of_2
-    }
-    else {
+    } else {
         potency_of_2 << 1
     }
 }
