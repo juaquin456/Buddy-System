@@ -39,7 +39,33 @@ impl BuddyTree {
     }
 
     fn allocate(&mut self, size: usize) -> bool {
-        todo!("Implementar")
+        let m_size = memory_to_allocate(size);
+        let mut node = &mut self.root;
+
+        loop {
+            if node.fit(m_size) {
+                while node.size != m_size {
+                    let mut new_node = BuddyNode::new(node.size / 2);
+                    new_node.prev = Some(node.clone());
+                    new_node.next = node.next.take();
+                    node.next = Some(Box::new(new_node));
+                    node.size = node.size / 2;
+                    node.state = State::PartialUsed;
+                }
+                node.state = State::Used;
+                return true;
+            }
+            else {
+                match node.next {
+                    Some(ref mut next) => {
+                        node = next;
+                    },
+                    None => {
+                        return false;
+                    }
+                }
+            }
+        }
     }
 
 }
