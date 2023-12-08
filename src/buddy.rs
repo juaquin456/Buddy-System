@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use std::rc::Rc;
 use std::usize;
 
 use colored::Colorize;
@@ -6,9 +7,8 @@ use colored::Colorize;
 use crate::utils;
 use crate::utils::calculate_width;
 
-#[derive(Clone)]
 struct BuddyNode<T> {
-    next: Option<Box<BuddyNode<T>>>,
+    next: Option<Rc<BuddyNode<T>>>,
     size: usize,
     used: bool,
     id: Option<T>,
@@ -67,8 +67,22 @@ impl<T> BuddyNode<T> where T: PartialEq + Copy {
 }
 
 pub struct BuddyTree<T> {
-    root: Box<BuddyNode<T>>,
+    root: Rc<BuddyNode<T>>,
 }
+
+#[macro_export]
+macro_rules! get_next {
+        ($node:expr) => {
+            match $node.next {
+                Some(ref mut next) => {
+                    $node = Rc::get_mut(next).unwrap();
+                }
+                None => {
+                    return false;
+                }
+            }
+        }
+    }
 
 impl<T> BuddyTree<T> where T: PartialEq + Copy + Display {
     /// Creates a new BuddyTree with the specified size.
@@ -78,7 +92,7 @@ impl<T> BuddyTree<T> where T: PartialEq + Copy + Display {
     /// * `size` - The size of the Buddy System.
     pub fn new(size: usize) -> BuddyTree<T> {
         BuddyTree {
-            root: Box::new(BuddyNode::new(size))
+            root: Rc::new(BuddyNode::new(size))
         }
     }
 
@@ -92,7 +106,7 @@ impl<T> BuddyTree<T> where T: PartialEq + Copy + Display {
     /// * `id` - The id of the memory to allocate.
     pub fn allocate(&mut self, size: usize, id: T) -> bool {
         let m_size = utils::memory_to_allocate(size);
-        let mut node = &mut self.root;
+        let mut node = Rc::get_mut(&mut self.root).unwrap();
 
         loop {
             // First free node found which fits the size
@@ -100,23 +114,16 @@ impl<T> BuddyTree<T> where T: PartialEq + Copy + Display {
                 while node.size != m_size {
                     // Split the node until the size is reached
                     let mut new_node = BuddyNode::new(node.size / 2);
-                    new_node.next = node.next.take();
-                    node.next = Some(Box::new(new_node));
-                    node.size = node.size / 2;
+                    new_node.next = node.next.clone();
+                    node.next = Some(Rc::new(new_node));
+                    node.size /= 2;
                 }
 
                 // Mark the node as used
                 node.set_id(id);
                 return true;
             } else {
-                match node.next {
-                    Some(ref mut next) => {
-                        node = next;
-                    }
-                    None => {
-                        return false;
-                    }
-                }
+                get_next!(node);
             }
         }
     }
@@ -129,22 +136,49 @@ impl<T> BuddyTree<T> where T: PartialEq + Copy + Display {
     ///
     /// * `id` - The id of the memory to deallocate.
     pub fn deallocate(&mut self, id: T) -> bool {
-        let mut node = &mut self.root;
-        loop {
-            if node.contains(id) {
-                node.release();
-                return true;
-            } else {
-                match node.next {
-                    Some(ref mut next) => {
-                        node = next;
-                    }
-                    None => {
-                        return false;
-                    }
+        {
+            let mut node = Rc::get_mut(&mut self.root).unwrap();
+
+            loop {
+                if node.contains(id) {
+                    node.release();
+                    break;
+                } else {
+                    get_next!(node);
                 }
             }
         }
+
+        // scan
+
+        let mut node = Rc::get_mut(&mut self.root).unwrap();
+
+        loop {
+            match node.next {
+                Some(ref mut next) => {
+                    if !next.used && !node.used {
+                        if next.size == node.size {
+                            // Merge the nodes
+                            node.next = next.next.clone();
+                            node.size *= 2;
+                        }
+                    }
+                    match node.next {
+                        Some(ref mut next) => {
+                            node = Rc::get_mut(next).unwrap();
+                        }
+                        None => {
+                            break;
+                        }
+                    }
+                }
+                None => {
+                    break;
+                }
+            }
+        }
+
+        return true;
     }
 
     /// Prints the BuddySystem
