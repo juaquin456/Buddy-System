@@ -149,10 +149,8 @@ impl<T> BuddyTree<T> where T: PartialEq + Copy + Display {
             }
         }
 
-        // scan
-
+        // Merge the nodes
         let mut node = Rc::get_mut(&mut self.root).unwrap();
-
         loop {
             match node.next {
                 Some(ref mut next) => {
@@ -186,6 +184,10 @@ impl<T> BuddyTree<T> where T: PartialEq + Copy + Display {
     /// # Arguments
     ///
     /// * `rescale` - The number of bits to rescale the size of the nodes. More rescale number means smaller nodes.
+    ///
+    /// # Example
+    ///
+    /// ```| id  :    0    || free:  128   |```
     pub fn print(&self, rescale: u32) {
         let mut node = &self.root;
 
