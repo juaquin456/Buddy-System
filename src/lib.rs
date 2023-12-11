@@ -3,4 +3,4 @@ pub use buddy::BuddyTree;
 
 mod utils;
 mod buddy;
-mod tests;
+mod test;

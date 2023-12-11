@@ -151,32 +151,24 @@ impl<T> BuddyTree<T> where T: PartialEq + Copy + Display {
 
         // Merge the nodes
         let mut node = Rc::get_mut(&mut self.root).unwrap();
-        loop {
-            match node.next {
-                Some(ref mut next) => {
-                    if (!next.used && !node.used) && (next.size == node.size) {
-                            // Merge the nodes
-                            node.next = next.next.clone();
-                            node.size *= 2;
-                    } else {
-                        match node.next {
-                            Some(ref mut next) => {
-                                node = Rc::get_mut(next).unwrap();
-                            }
-                            None => {
-                                break;
-                            }
-                        }
+        while let Some(ref mut next) = node.next {
+            if (!next.used && !node.used) && (next.size == node.size) {
+                // Merge the nodes
+                node.next = next.next.clone();
+                node.size *= 2;
+            } else {
+                match node.next {
+                    Some(ref mut next) => {
+                        node = Rc::get_mut(next).unwrap();
                     }
-                    
-                }
-                None => {
-                    break;
+                    None => {
+                        break;
+                    }
                 }
             }
         }
 
-        return true;
+        true
     }
 
     /// Prints the BuddySystem
@@ -192,7 +184,7 @@ impl<T> BuddyTree<T> where T: PartialEq + Copy + Display {
         let mut node = &self.root;
 
         loop {
-            print!("|{}|", format!("{: ^width$}", {
+            print!("|{: ^width$}|", {
                 match node.id {
                     Some(ref id) => {
                         format!("id  : {:4}", id).blue()
@@ -201,7 +193,7 @@ impl<T> BuddyTree<T> where T: PartialEq + Copy + Display {
                         format!("size: {:4}", node.size).red()
                     }
                 }
-            }, width = 10 + 2 * calculate_width(node.size.ilog2() - rescale) as usize));
+            }, width = 10 + 2 * calculate_width(node.size.ilog2() - rescale) as usize);
 
 
             match node.next {
