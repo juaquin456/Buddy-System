@@ -1,4 +1,4 @@
-use buddy_system::BuddyTree;
+use buddy_system_visualization::BuddyTree;
 
 fn main() {
     let mut tree = BuddyTree::new(16);
