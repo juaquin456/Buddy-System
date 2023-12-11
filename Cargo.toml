@@ -1,5 +1,5 @@
 [package]
-name = "buddy_system"
+name = "buddy_system_visualization"
 version = "0.1.0"
 edition = "2021"
 authors = ["juaquin456"]
