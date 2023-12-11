@@ -154,21 +154,21 @@ impl<T> BuddyTree<T> where T: PartialEq + Copy + Display {
         loop {
             match node.next {
                 Some(ref mut next) => {
-                    if !next.used && !node.used {
-                        if next.size == node.size {
+                    if (!next.used && !node.used) && (next.size == node.size) {
                             // Merge the nodes
                             node.next = next.next.clone();
                             node.size *= 2;
+                    } else {
+                        match node.next {
+                            Some(ref mut next) => {
+                                node = Rc::get_mut(next).unwrap();
+                            }
+                            None => {
+                                break;
+                            }
                         }
                     }
-                    match node.next {
-                        Some(ref mut next) => {
-                            node = Rc::get_mut(next).unwrap();
-                        }
-                        None => {
-                            break;
-                        }
-                    }
+                    
                 }
                 None => {
                     break;
