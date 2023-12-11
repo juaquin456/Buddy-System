@@ -81,4 +81,42 @@ mod tests {
             assert_eq!(result, true);
         }
     }
+    
+    #[test]
+    fn test_deallocate2() {
+        let mut tree = BuddyTree::new(128);
+        for i in 0..16 {
+            let result = tree.deallocate(i);
+            assert_eq!(result, false);
+        }
+    }
+    
+    #[test]
+    fn test_deallocate3() {
+        let mut tree = BuddyTree::new(128);
+        for i in 0..16 {
+            let result = tree.allocate(8, i);
+            assert_eq!(result, true);
+        }
+        for i in 0..16 {
+            let result = tree.deallocate(i);
+            assert_eq!(result, true);
+        }
+        for i in 0..16 {
+            let result = tree.allocate(8, i);
+            assert_eq!(result, true);
+        }
+    }
+    
+    #[test]
+    fn test_global_use() {
+        let mut tree = BuddyTree::new(128);
+        assert_eq!(tree.allocate(8, "A"), true);
+        assert_eq!(tree.allocate(16, "B"), true);
+        assert_eq!(tree.allocate(32, "C"), true);
+        assert_eq!(tree.allocate(64, "D"), true);
+        assert_eq!(tree.deallocate("B"), true);
+        assert_eq!(tree.allocate(8, "E"), true);
+        assert_eq!(tree.deallocate("0"), false);
+    }
 }
